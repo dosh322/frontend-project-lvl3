@@ -21,4 +21,5 @@ module.exports = {
       inject: 'body',
     }),
   ],
+  mode: process.env.NODE_ENV || 'development',
 };
