@@ -34,7 +34,7 @@ export default () => {
       schema.validateSync(rsslink);
       return null;
     } catch (err) {
-      state.errors.push(err);
+      console.log(err);
       return err.message;
     }
   };
@@ -46,13 +46,10 @@ export default () => {
     const formData = new FormData(e.target);
     const value = formData.get('url');
     const errors = validate(value);
-    console.log(state.errors);
     watched.rssForm.name.valid = !errors;
     watched.rssForm.name.error = errors;
     if (errors) {
       return;
     }
-
-
   });
 };
