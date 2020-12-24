@@ -13,7 +13,8 @@ export default {
       success: 'RSS has been loaded',
       url: 'Must be valid URL',
       double: 'This RSS already exist',
-      network: 'Network Error',
+      'Network Error': 'Network Error',
+      parseError: 'Invalid RSS on following link',
     },
   },
 };

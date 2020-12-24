@@ -21,6 +21,6 @@ export default (response) => {
       posts,
     };
   } catch (err) {
-    throw new Error('ParseError');
+    throw new Error('parseError');
   }
 };
