@@ -28,7 +28,7 @@ export default async () => {
   };
 
   const state = {
-    lng: defaultLanguage,
+    lng: null,
     rssForm: {
       status: 'filling',
       fields: {
@@ -57,6 +57,16 @@ export default async () => {
       return err.message;
     }
   };
+
+  const autoUpdate = () => {
+    const rssLinks = watched.feeds.map((feed) => feed.rssLink);
+    console.log(rssLinks);
+    setTimeout(autoUpdate, 5000);
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    watched.lng = defaultLanguage;
+  });
 
   elements.langToggler.addEventListener('click', (e) => {
     e.preventDefault();
@@ -91,7 +101,7 @@ export default async () => {
           description,
           rssLink,
         });
-        watched.posts.push(...posts);
+        watched.posts.unshift(...posts);
         watched.rssForm.status = 'filling';
       }).catch((err) => {
         watched.rssForm.status = 'failed';
@@ -99,4 +109,5 @@ export default async () => {
         throw err;
       });
   });
+  autoUpdate();
 };

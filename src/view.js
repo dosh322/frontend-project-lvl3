@@ -84,7 +84,7 @@ const renderFeeds = (elements, feeds) => {
 };
 
 const renderPosts = (elements, posts) => {
-  console.log(posts);
+  elements.posts.innerHTML = '';
   const postsHeading = document.createElement('h2');
   postsHeading.textContent = 'Posts';
   const listOfPosts = document.createElement('ul');
