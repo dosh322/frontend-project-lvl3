@@ -1,5 +1,27 @@
 /* eslint-disable no-param-reassign */
 import onChange from 'on-change';
+import i18next from 'i18next';
+
+const renderTextContent = (elements) => {
+  const feedback = document.querySelector('.feedback');
+  const feedsHeading = document.querySelector('.feeds h2');
+  const postsHeading = document.querySelector('.posts h2');
+  console.log(feedsHeading);
+  if (feedback) {
+    feedback.textContent = i18next.t(`feedback.${feedback.dataset.type}`);
+  } if (feedsHeading) {
+    feedsHeading.textContent = i18next.t('feedsTitle');
+  } if (postsHeading) {
+    postsHeading.textContent = i18next.t('postsTitle');
+  }
+  elements.appName.textContent = i18next.t('appName');
+  elements.langToggler.textContent = i18next.t('lng');
+  elements.appDescription.textContent = i18next.t('appDescription');
+  elements.input.placeholder = i18next.t('inputPlaceholder');
+  elements.copyright.textContent = i18next.t('copyright');
+  elements.submitBtn.textContent = i18next.t('submit');
+  elements.exampleLinkElem.textContent = i18next.t('example');
+};
 
 const buildFeedbackElem = () => {
   const div = document.createElement('div');
@@ -20,7 +42,8 @@ const renderValidationErrors = (elements, validStatus, err) => {
   input.classList.add('is-invalid');
   const errorElem = buildFeedbackElem();
   errorElem.classList.add('text-danger');
-  errorElem.textContent = err;
+  errorElem.dataset.type = err;
+  errorElem.textContent = i18next.t(`feedback.${err}`);
   exampleLinkElem.after(errorElem);
 };
 
@@ -35,7 +58,8 @@ const renderErrors = (elements, err) => {
   }
   const errorElem = buildFeedbackElem();
   errorElem.classList.add('text-danger');
-  errorElem.textContent = err;
+  errorElem.dataset.type = err;
+  errorElem.textContent = i18next.t(`feedback.${err}`);
   exampleLinkElem.after(errorElem);
 };
 
@@ -86,7 +110,8 @@ const renderFeedback = (elements) => {
   }
   const feedback = buildFeedbackElem();
   feedback.classList.add('text-success');
-  feedback.textContent = 'Rss has been loaded';
+  feedback.dataset.type = 'success';
+  feedback.textContent = i18next.t('feedback.success');
   exampleLinkElem.after(feedback);
 };
 
@@ -95,8 +120,8 @@ const processStateHandler = (elements, status) => {
   switch (status) {
     case 'filling':
       submitBtn.disabled = false;
-      input.textContent = '';
       input.disabled = false;
+      input.value = '';
       renderFeedback(elements);
       break;
 
@@ -120,7 +145,6 @@ export default (state, elements) => {
   elements.input.focus();
 
   const watchedState = onChange(state, (path, value) => {
-    console.log(path);
     switch (path) {
       case 'rssForm.fields.rssLink.error':
         renderValidationErrors(elements, state.rssForm.fields.rssLink.valid, value);
@@ -140,6 +164,10 @@ export default (state, elements) => {
 
       case 'posts':
         renderPosts(elements, value);
+        break;
+
+      case 'lng':
+        renderTextContent(elements);
         break;
 
       default:

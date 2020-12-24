@@ -1,10 +1,18 @@
 import * as yup from 'yup';
 import axios from 'axios';
+import i18next from 'i18next';
 import initView from './view.js';
 import parse from './parser.js';
+import resources from './locales/index.js';
 
-export default () => {
+export default async () => {
   const proxyUrl = 'https://api.allorigins.win/get?url=';
+  const defaultLanguage = 'en';
+
+  await i18next.init({
+    lng: defaultLanguage,
+    resources,
+  });
 
   const elements = {
     form: document.querySelector('.rss-form'),
@@ -13,9 +21,14 @@ export default () => {
     exampleLinkElem: document.querySelector('#example-link'),
     feeds: document.querySelector('.feeds'),
     posts: document.querySelector('.posts'),
+    langToggler: document.querySelector('#lang-toggler'),
+    copyright: document.querySelector('#copyright'),
+    appName: document.querySelector('#app-name'),
+    appDescription: document.querySelector('#app-description'),
   };
 
   const state = {
+    lng: defaultLanguage,
     rssForm: {
       status: 'filling',
       fields: {
@@ -35,8 +48,8 @@ export default () => {
   const getRssLinks = () => watched.feeds.map((feed) => feed.rssLink);
 
   const validate = (rsslink) => {
-    const schema = yup.string().url()
-      .notOneOf(getRssLinks(), 'not one of');
+    const schema = yup.string().url('url')
+      .notOneOf(getRssLinks(), 'double');
     try {
       schema.validateSync(rsslink);
       return null;
@@ -44,6 +57,13 @@ export default () => {
       return err.message;
     }
   };
+
+  elements.langToggler.addEventListener('click', (e) => {
+    e.preventDefault();
+    const newLng = watched.lng === 'en' ? 'ru' : 'en';
+    i18next.changeLanguage(newLng);
+    watched.lng = newLng;
+  });
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
