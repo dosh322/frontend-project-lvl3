@@ -1,9 +1,9 @@
 export default {
   translation: {
+    lng: 'eng',
     appName: 'RSS Reader',
     feedsTitle: 'Feeds',
     postsTitle: 'Posts',
-    lng: 'eng',
     appDescription: 'Start reading RSS today! It is easy, it is nicely.',
     inputPlaceholder: 'RSS link',
     copyright: 'Designed by ',

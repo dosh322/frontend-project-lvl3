@@ -1,7 +1,7 @@
 export default {
   translation: {
-    appName: 'RSS Reader',
     lng: 'ru',
+    appName: 'RSS Reader',
     feedsTitle: 'Фиды',
     postsTitle: 'Посты',
     appDescription: 'Начни читать RSS уже сегодня! Это легко, это удобно.',
