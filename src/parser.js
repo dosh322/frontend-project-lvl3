@@ -1,21 +1,17 @@
-import _ from 'lodash';
-
 export default (response) => {
+  console.log(response);
   const domparser = new DOMParser();
-  const doc = domparser.parseFromString(response.data.contents, 'text/xml');
+  const doc = domparser.parseFromString(response.data, 'text/xml'); // .contents
   try {
     const title = doc.querySelector('title').textContent;
     const description = doc.querySelector('description').textContent;
-    const feedId = _.uniqueId();
     const posts = [...doc.querySelectorAll('item')].map((post) => ({
-      feedId,
-      postId: post.querySelector('guid').textContent,
+      id: post.querySelector('guid').textContent,
       title: post.querySelector('title').textContent,
       description: post.querySelector('description').textContent,
       link: post.querySelector('link').textContent,
     }));
     return {
-      feedId,
       title,
       description,
       posts,

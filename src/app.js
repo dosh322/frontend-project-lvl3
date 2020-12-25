@@ -1,15 +1,18 @@
 import * as yup from 'yup';
 import axios from 'axios';
 import i18next from 'i18next';
+import _ from 'lodash';
 import initView from './view.js';
 import parse from './parser.js';
 import resources from './locales/index.js';
 
-export default async () => {
-  const proxyUrl = 'https://api.allorigins.win/get?url=';
+export default () => {
+  // const proxyUrl = 'https://api.allorigins.win/get?url=';
+  const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
   const defaultLanguage = 'en';
+  const checkForUpdTimer = 5000;
 
-  await i18next.init({
+  i18next.init({
     lng: defaultLanguage,
     resources,
   });
@@ -25,6 +28,10 @@ export default async () => {
     copyright: document.querySelector('#copyright'),
     appName: document.querySelector('#app-name'),
     appDescription: document.querySelector('#app-description'),
+    modalTitle: document.querySelector('.modal-title'),
+    modalBody: document.querySelector('.modal-body'),
+    modalFullArticle: document.querySelector('.full-article'),
+    modalCloseBtn: document.querySelector('.close-btn'),
   };
 
   const state = {
@@ -41,6 +48,9 @@ export default async () => {
     error: null,
     feeds: [],
     posts: [],
+    uiState: {
+      posts: [],
+    },
   };
 
   const watched = initView(state, elements);
@@ -59,9 +69,25 @@ export default async () => {
   };
 
   const autoUpdate = () => {
-    const rssLinks = watched.feeds.map((feed) => feed.rssLink);
-    console.log(rssLinks);
-    setTimeout(autoUpdate, 5000);
+    watched.feeds.forEach(({ rssLink, feedId }) => {
+      const currentPosts = watched.posts.filter((post) => post.feedId === feedId);
+      axios.get(`${proxyUrl}${rssLink}`) // `${proxyUrl}${encodeURIComponent(rssLink)}`
+        .then((responce) => parse(responce))
+        .then(({ posts }) => posts.filter((post) => !currentPosts
+          .some((currentPost) => currentPost.id === post.id)))
+        .then((newPosts) => newPosts.map(({
+          id, title, description, link,
+        }) => ({
+          id, feedId, title, description, link,
+        })))
+        .then((linkedNewPosts) => {
+          linkedNewPosts.forEach(({ id }) => {
+            watched.uiState.posts.unshift({ id, status: 'unread' });
+          });
+          watched.posts.unshift(...linkedNewPosts);
+        });
+    });
+    setTimeout(autoUpdate, checkForUpdTimer);
   };
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -87,27 +113,41 @@ export default async () => {
       return;
     }
     watched.rssForm.status = 'loading';
-    axios.get(`${proxyUrl}${encodeURIComponent(rssLink)}`)
+    axios.get(`${proxyUrl}${rssLink}`) // `${proxyUrl}${encodeURIComponent(rssLink)}`
       .then((response) => parse(response))
       .then(({
-        feedId,
-        title,
-        description,
-        posts,
+        title, description, posts,
+      }) => ({
+        feedId: _.uniqueId(), title, description, posts,
+      }))
+      .then(({
+        feedId, title, description, posts,
       }) => {
         watched.feeds.push({
-          feedId,
-          title,
-          description,
-          rssLink,
+          feedId, title, description, rssLink,
         });
-        watched.posts.unshift(...posts);
+
+        return { feedId, posts };
+      })
+      .then(({ feedId, posts }) => {
+        const linkedPosts = posts.map(({
+          id, title, description, link,
+        }) => ({
+          feedId, id, title, description, link,
+        }));
+
+        posts.forEach(({ id }) => {
+          watched.uiState.posts.unshift({ id, status: 'unread' });
+        });
+        watched.posts.unshift(...linkedPosts);
         watched.rssForm.status = 'filling';
-      }).catch((err) => {
+      })
+      .catch((err) => {
         watched.rssForm.status = 'failed';
         watched.error = err.message;
         throw err;
       });
   });
+
   autoUpdate();
 };
