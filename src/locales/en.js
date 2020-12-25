@@ -7,8 +7,11 @@ export default {
     appDescription: 'Start reading RSS today! It is easy, it is nicely.',
     inputPlaceholder: 'RSS link',
     copyright: 'Designed by ',
-    submit: 'add',
+    submit: 'Add',
     example: 'Example: https://ru.hexlet.io/lessons.rss',
+    closeBtn: 'Close',
+    full: 'Full article',
+    preview: 'Preview',
     feedback: {
       success: 'RSS has been loaded',
       url: 'Must be valid URL',

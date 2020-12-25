@@ -9,6 +9,9 @@ export default {
     copyright: 'Дизайн разработан ',
     submit: 'Добавить',
     example: 'Например, https://ru.hexlet.io/lessons.rss',
+    closeBtn: 'Закрыть',
+    full: 'Читать полностью',
+    preview: 'Предпросмотр',
     feedback: {
       success: 'RSS успешно загружен!',
       url: 'Введите валидный URL',
