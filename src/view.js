@@ -82,7 +82,7 @@ const renderErrors = (elements, err) => {
   const errorElem = buildFeedbackElem();
   errorElem.classList.add('text-danger');
   errorElem.dataset.type = err;
-  errorElem.textContent = i18next.t(`feedback.${err}`);
+  errorElem.textContent = i18next.t(`feedback.${err}`, 'Something went wrong! Try again later');
   exampleLinkElem.after(errorElem);
 };
 
