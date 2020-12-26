@@ -200,8 +200,6 @@ const processStateHandler = (elements, status) => {
 };
 
 export default (state, elements) => {
-  elements.input.focus();
-
   const watchedState = onChange(state, (path, value) => {
     switch (path) {
       case 'rssForm.fields.rssLink.error':
@@ -229,7 +227,7 @@ export default (state, elements) => {
         break;
 
       default:
-        break;
+        throw new Error('Unknown state!');
     }
   });
 
