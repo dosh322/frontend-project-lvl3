@@ -1,7 +1,6 @@
 export default (response) => {
-  console.log(response);
   const domparser = new DOMParser();
-  const doc = domparser.parseFromString(response.data, 'text/xml'); // .contents
+  const doc = domparser.parseFromString(response.data, 'text/xml');
   try {
     const title = doc.querySelector('title').textContent;
     const description = doc.querySelector('description').textContent;

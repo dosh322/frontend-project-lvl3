@@ -120,7 +120,6 @@ const renderPosts = (elements, posts, state) => {
       title, link, description, id,
     } = post;
     const [postUiState] = state.uiState.posts.filter((postUi) => postUi.id === id);
-    console.log(postUiState);
     const list = document.createElement('li');
     const preview = buildPreviewBtn(index + 1);
     list.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start');

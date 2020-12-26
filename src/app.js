@@ -7,15 +7,9 @@ import parse from './parser.js';
 import resources from './locales/index.js';
 
 export default () => {
-  // const proxyUrl = 'https://api.allorigins.win/get?url=';
   const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
   const defaultLanguage = 'en';
   const checkForUpdTimer = 5000;
-
-  i18next.init({
-    lng: defaultLanguage,
-    resources,
-  });
 
   const elements = {
     form: document.querySelector('.rss-form'),
@@ -71,7 +65,7 @@ export default () => {
   const autoUpdate = () => {
     watched.feeds.forEach(({ rssLink, feedId }) => {
       const currentPosts = watched.posts.filter((post) => post.feedId === feedId);
-      axios.get(`${proxyUrl}${rssLink}`) // `${proxyUrl}${encodeURIComponent(rssLink)}`
+      axios.get(`${proxyUrl}${rssLink}`)
         .then((responce) => parse(responce))
         .then(({ posts }) => posts.filter((post) => !currentPosts
           .some((currentPost) => currentPost.id === post.id)))
@@ -90,7 +84,10 @@ export default () => {
     setTimeout(autoUpdate, checkForUpdTimer);
   };
 
-  document.addEventListener('DOMContentLoaded', () => {
+  i18next.init({
+    lng: defaultLanguage,
+    resources,
+  }).then(() => {
     watched.lng = defaultLanguage;
   });
 
@@ -113,7 +110,7 @@ export default () => {
       return;
     }
     watched.rssForm.status = 'loading';
-    axios.get(`${proxyUrl}${rssLink}`) // `${proxyUrl}${encodeURIComponent(rssLink)}`
+    axios.get(`${proxyUrl}${rssLink}`)
       .then((response) => parse(response))
       .then(({
         title, description, posts,
