@@ -227,7 +227,7 @@ export default (state, elements) => {
         break;
 
       default:
-        throw new Error('Unknown state!');
+        break;
     }
   });
 

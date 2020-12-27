@@ -47,6 +47,8 @@ export default () => {
     },
   };
 
+  console.log(state.uiState.posts);
+
   const watched = initView(state, elements);
 
   const getRssLinks = () => watched.feeds.map((feed) => feed.rssLink);
@@ -123,7 +125,7 @@ export default () => {
         watched.feeds.push({
           feedId, title, description, rssLink,
         });
-
+        console.log('here');
         return { feedId, posts };
       })
       .then(({ feedId, posts }) => {
