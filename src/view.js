@@ -2,26 +2,8 @@
 import onChange from 'on-change';
 import i18next from 'i18next';
 
-const renderTextContent = (elements) => {
-  const feedback = document.querySelector('.feedback');
-  const feedsHeading = document.querySelector('.feeds h2');
-  const postsHeading = document.querySelector('.posts h2');
-  const previewBtns = document.querySelectorAll('.preview');
-
-  if (feedback) {
-    feedback.textContent = i18next.t(`feedback.${feedback.dataset.type}`);
-  } if (feedsHeading) {
-    feedsHeading.textContent = i18next.t('feedsTitle');
-  } if (postsHeading) {
-    postsHeading.textContent = i18next.t('postsTitle');
-  } if (previewBtns) {
-    previewBtns.forEach((btn) => {
-      btn.textContent = i18next.t('preview');
-    });
-  }
-
+export const renderTextContent = (elements) => {
   elements.appName.textContent = i18next.t('appName');
-  elements.langToggler.textContent = i18next.t('lng');
   elements.appDescription.textContent = i18next.t('appDescription');
   elements.input.placeholder = i18next.t('inputPlaceholder');
   elements.copyright.textContent = i18next.t('copyright');
@@ -31,24 +13,44 @@ const renderTextContent = (elements) => {
   elements.modalFullArticle.textContent = i18next.t('full');
 };
 
-const buildFeedbackElem = () => {
+const postOpeningHandler = (watched, postId) => () => {
+  if (!watched.uiState.viewedPostsIds.includes(postId)) {
+    watched.uiState.viewedPostsIds.push(postId);
+  }
+  watched.uiState.previewModal.currentPostId = postId;
+};
+
+const buildFeedbackElem = (type) => {
   const div = document.createElement('div');
-  div.classList.add('feedback');
+  const textClass = type === 'sucess' ? 'text-success' : 'text-danger';
+  div.classList.add('feedback', textClass);
+  div.textContent = i18next.t(`feedback.${type}`, 'Something went wrong! Try again later');
   return div;
 };
 
-const buildPreviewBtn = (btnId) => {
+const buildPreviewBtn = (postId) => {
   const btn = document.createElement('button');
   btn.type = 'button';
-  btn.id = btnId;
   btn.classList.add('btn', 'btn-primary', 'preview');
   btn.dataset.toggle = 'modal';
   btn.dataset.target = '#modal';
+  btn.dataset.id = postId;
   btn.textContent = i18next.t('preview');
   return btn;
 };
 
-const renderValidationErrors = (elements, validStatus, err) => {
+const buildPost = (title, link, id, isPostOpened) => {
+  const postLink = document.createElement('a');
+  postLink.href = link;
+  postLink.textContent = title;
+  postLink.target = '_blank';
+  postLink.dataset.id = id;
+  const fontWeight = isPostOpened ? 'font-weight-normal' : 'font-weight-bold';
+  postLink.classList.add(fontWeight);
+  return postLink;
+};
+
+const renderErrors = (elements, validStatus, err) => {
   const { exampleLinkElem, input } = elements;
   const feedbackElem = exampleLinkElem.nextElementSibling;
 
@@ -57,32 +59,14 @@ const renderValidationErrors = (elements, validStatus, err) => {
   }
   if (validStatus) {
     input.classList.remove('is-invalid');
-    return;
-  }
-
-  input.classList.add('is-invalid');
-  const errorElem = buildFeedbackElem();
-  errorElem.classList.add('text-danger');
-  errorElem.dataset.type = err;
-  errorElem.textContent = i18next.t(`feedback.${err}`);
-  exampleLinkElem.after(errorElem);
-};
-
-const renderErrors = (elements, err) => {
-  const { exampleLinkElem } = elements;
-  const feedbackElem = exampleLinkElem.nextElementSibling;
-
-  if (feedbackElem) {
-    feedbackElem.remove();
+  } else {
+    input.classList.add('is-invalid');
   }
   if (!err) {
     return;
   }
 
-  const errorElem = buildFeedbackElem();
-  errorElem.classList.add('text-danger');
-  errorElem.dataset.type = err;
-  errorElem.textContent = i18next.t(`feedback.${err}`, 'Something went wrong! Try again later');
+  const errorElem = buildFeedbackElem(err);
   exampleLinkElem.after(errorElem);
 };
 
@@ -108,51 +92,29 @@ const renderFeeds = (elements, feeds) => {
   elements.feeds.append(feedsHeading, listOfFeeds);
 };
 
-const renderPosts = (elements, posts, state) => {
+const renderPosts = (elements, posts, watched) => {
   elements.posts.innerHTML = '';
   const postsHeading = document.createElement('h2');
   postsHeading.textContent = i18next.t('postsTitle');
   const listOfPosts = document.createElement('ul');
   listOfPosts.classList.add('list-group');
 
-  posts.forEach((post, index) => {
+  posts.forEach((post) => {
     const {
-      title, link, description, id,
+      title, link, id,
     } = post;
-    const [postUiState] = state.uiState.posts.filter((postUi) => postUi.id === id);
-    const list = document.createElement('li');
-    const preview = buildPreviewBtn(index + 1);
-    list.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start');
-    const postLink = document.createElement('a');
-    const fontWeight = postUiState.status === 'opened' ? 'font-weight-normal' : 'font-weight-bold';
-    postLink.classList.add(fontWeight);
-    postLink.href = link;
-    postLink.textContent = title;
-    postLink.target = '_blank';
-    postLink.addEventListener('click', () => {
-      if (postUiState.status === 'opened') {
-        return;
-      }
-      postUiState.status = 'opened';
-      postLink.classList.remove('font-weight-bold');
-      postLink.classList.add('font-weight-normal');
-    });
+    const isPostOpened = watched.uiState.viewedPostsIds.includes(id);
+    const postList = document.createElement('li');
+    postList.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start');
+    const preview = buildPreviewBtn(id);
+    const postLink = buildPost(title, link, id, isPostOpened);
 
-    preview.addEventListener('click', (e) => {
-      e.preventDefault();
-      elements.modalTitle.textContent = title;
-      elements.modalBody.textContent = description;
-      elements.modalFullArticle.href = link;
-      if (postUiState.status === 'opened') {
-        return;
-      }
-      postUiState.status = 'opened';
-      postLink.classList.remove('font-weight-bold');
-      postLink.classList.add('font-weight-normal');
-    });
+    postLink.addEventListener('click', postOpeningHandler(watched, id));
 
-    list.append(postLink, preview);
-    listOfPosts.append(list);
+    preview.addEventListener('click', postOpeningHandler(watched, id));
+
+    postList.append(postLink, preview);
+    listOfPosts.append(postList);
   });
 
   elements.posts.append(postsHeading, listOfPosts);
@@ -166,10 +128,8 @@ const renderFeedback = (elements) => {
     feedbackElem.remove();
   }
 
-  const feedback = buildFeedbackElem();
-  feedback.classList.add('text-success');
-  feedback.dataset.type = 'success';
-  feedback.textContent = i18next.t('feedback.success');
+  const feedbackType = 'success';
+  const feedback = buildFeedbackElem(feedbackType);
   exampleLinkElem.after(feedback);
 };
 
@@ -199,19 +159,34 @@ const processStateHandler = (elements, status) => {
   }
 };
 
-export default (state, elements) => {
+const updatePostsUi = (viewedPostsIds) => {
+  viewedPostsIds.forEach((postId) => {
+    const viewedPost = document.querySelector(`a[data-id='${postId}']`);
+    viewedPost.classList.remove('font-weight-bold');
+    viewedPost.classList.add('font-weight-normal');
+  });
+};
+
+const updateModalContent = (posts, currentPostId, elements) => {
+  const currentPost = posts.find(({ id }) => id === currentPostId);
+  elements.modalTitle.textContent = currentPost.title;
+  elements.modalBody.textContent = currentPost.description;
+  elements.modalFullArticle.href = currentPost.link;
+};
+
+export const initView = (state, elements) => {
   const watchedState = onChange(state, (path, value) => {
     switch (path) {
       case 'rssForm.fields.rssLink.error':
-        renderValidationErrors(elements, state.rssForm.fields.rssLink.valid, value);
+        renderErrors(elements, state.rssForm.fields.rssLink.valid, value);
         break;
 
       case 'rssForm.status':
         processStateHandler(elements, value);
         break;
 
-      case 'error':
-        renderErrors(elements, value);
+      case 'networkError':
+        renderErrors(elements, state.rssForm.fields.rssLink.valid, value);
         break;
 
       case 'feeds':
@@ -219,11 +194,15 @@ export default (state, elements) => {
         break;
 
       case 'posts':
-        renderPosts(elements, value, state);
+        renderPosts(elements, value, watchedState);
         break;
 
-      case 'lng':
-        renderTextContent(elements);
+      case 'uiState.viewedPostsIds':
+        updatePostsUi(state.uiState.viewedPostsIds);
+        break;
+
+      case 'uiState.previewModal.currentPostId':
+        updateModalContent(state.posts, value, elements);
         break;
 
       default:
