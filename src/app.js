@@ -6,8 +6,6 @@ import { initView, renderTextContent } from './view.js';
 import parse from './parser.js';
 import resources from './locales/index.js';
 
-const promise = new Promise((resolve) => resolve());
-
 export default () => {
   const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
   const defaultLanguage = 'en';
@@ -68,28 +66,20 @@ export default () => {
   };
 
   const autoUpdate = () => {
-    if (watched.feeds.length === 0) {
-      setTimeout(autoUpdate, checkForUpdTimer);
-      return;
-    }
+    watched.feeds.forEach(({ rssLink, feedId }) => {
+      const currentPosts = watched.posts.filter((post) => post.feedId === feedId);
 
-    promise
-      .then(() => {
-        watched.feeds.forEach(({ rssLink, feedId }) => {
-          const currentPosts = watched.posts.filter((post) => post.feedId === feedId);
-
-          axios.get(`${proxyUrl}${rssLink}`)
-            .then((responce) => parse(responce))
-            .then(({ posts }) => posts.filter((post) => !currentPosts
-              .some((currentPost) => currentPost.title === post.title
+      axios.get(`${proxyUrl}${rssLink}`)
+        .then((responce) => parse(responce))
+        .then(({ posts }) => posts.filter((post) => !currentPosts
+          .some((currentPost) => currentPost.title === post.title
               && currentPost.description === post.description)))
-            .then((newPosts) => linkPosts(feedId, newPosts))
-            .then((linkedNewPosts) => {
-              watched.posts.unshift(...linkedNewPosts);
-            });
+        .then((newPosts) => linkPosts(feedId, newPosts))
+        .then((linkedNewPosts) => {
+          watched.posts.unshift(...linkedNewPosts);
         });
-      })
-      .then(() => setTimeout(autoUpdate, checkForUpdTimer));
+    });
+    setTimeout(autoUpdate, checkForUpdTimer);
   };
 
   autoUpdate();
