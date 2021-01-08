@@ -28,6 +28,10 @@ export default () => {
   };
 
   const state = {
+    loadingProcess: {
+      status: null,
+      error: null,
+    },
     rssForm: {
       status: 'filling',
       fields: {
