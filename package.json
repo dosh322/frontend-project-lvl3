@@ -29,7 +29,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "axios": "^0.21.0",
+    "axios": "^0.21.1",
     "bootstrap": "^4.5.3",
     "i18next": "^19.8.4",
     "jquery": "^3.5.1",
