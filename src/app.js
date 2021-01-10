@@ -29,7 +29,7 @@ export default () => {
 
   const state = {
     loadingProcess: {
-      status: null,
+      state: 'ready',
       error: null,
     },
     rssForm: {
@@ -41,7 +41,6 @@ export default () => {
         },
       },
     },
-    networkError: null,
     feeds: [],
     posts: [],
     uiState: {
@@ -52,54 +51,54 @@ export default () => {
     },
   };
 
-  const watched = initView(state, elements);
-
-  const getRssLinks = () => watched.feeds.map((feed) => feed.rssLink);
+  const getRssLinks = (watched) => watched.feeds.map((feed) => feed.rssLink);
 
   const linkPosts = (feedId, posts) => posts.map((post) => ({ feedId, id: _.uniqueId(), ...post }));
 
-  const validate = (rsslink) => {
+  const validate = (rssLink, urls) => {
     const schema = yup.string().url('url')
-      .notOneOf(getRssLinks(), 'double');
+      .notOneOf(urls, 'double');
     try {
-      schema.validateSync(rsslink);
+      schema.validateSync(rssLink);
       return null;
     } catch (err) {
       return err.message;
     }
   };
 
-  const autoUpdate = () => {
-    watched.feeds.forEach(({ rssLink, feedId }) => {
-      const currentPosts = watched.posts.filter((post) => post.feedId === feedId);
-
-      axios.get(`${proxyUrl}${rssLink}`)
-        .then((responce) => parse(responce))
-        .then(({ posts }) => posts.filter((post) => !currentPosts
-          .some((currentPost) => currentPost.title === post.title
-              && currentPost.description === post.description)))
-        .then((newPosts) => linkPosts(feedId, newPosts))
-        .then((linkedNewPosts) => {
-          watched.posts.unshift(...linkedNewPosts);
-        });
-    });
-    setTimeout(autoUpdate, checkForUpdTimer);
-  };
-
-  autoUpdate();
-
-  i18next.init({
+  return i18next.init({
     lng: defaultLanguage,
     resources,
   }).then(() => {
     renderTextContent(elements);
 
+    const watched = initView(state, elements);
+
+    const autoUpdate = () => {
+      if (watched.loadingProcess.state !== 'loading') {
+        watched.feeds.forEach(({ rssLink, feedId }) => {
+          const currentPosts = watched.posts.filter((post) => post.feedId === feedId);
+
+          axios.get(`${proxyUrl}${rssLink}`)
+            .then((response) => parse(response))
+            .then(({ posts }) => posts.filter((post) => !currentPosts
+              .some((currentPost) => currentPost.title === post.title
+                && currentPost.description === post.description)))
+            .then((newPosts) => linkPosts(feedId, newPosts))
+            .then((linkedNewPosts) => {
+              watched.posts.unshift(...linkedNewPosts);
+            });
+        });
+      }
+      setTimeout(autoUpdate, checkForUpdTimer);
+    };
+
     elements.form.addEventListener('submit', (e) => {
       e.preventDefault();
-      watched.networkError = null;
+      watched.loadingProcess.error = null;
       const formData = new FormData(e.target);
       const rssLink = formData.get('url').trim();
-      const errors = validate(rssLink);
+      const errors = validate(rssLink, getRssLinks(watched));
       watched.rssForm.fields.rssLink.valid = !errors;
       watched.rssForm.fields.rssLink.error = errors;
 
@@ -107,7 +106,8 @@ export default () => {
         return;
       }
 
-      watched.rssForm.status = 'loading';
+      watched.loadingProcess.state = 'loading';
+      watched.rssForm.status = 'submitted';
       axios.get(`${proxyUrl}${rssLink}`)
         .then((response) => parse(response))
         .then((parsedData) => ({
@@ -124,13 +124,18 @@ export default () => {
         .then(({ feedId, posts }) => {
           const linkedPosts = linkPosts(feedId, posts);
           watched.posts.unshift(...linkedPosts);
-          watched.rssForm.status = 'filling';
         })
+        .then(() => { watched.rssForm.status = 'succeed'; })
         .catch((err) => {
-          watched.rssForm.status = 'failed';
-          watched.networkError = err.message;
+          watched.loadingProcess.state = 'failed';
+          watched.loadingProcess.error = err.message;
           throw err;
+        })
+        .finally(() => {
+          watched.rssForm.status = 'filling';
+          watched.loadingProcess.state = 'ready';
         });
     });
+    autoUpdate();
   });
 };

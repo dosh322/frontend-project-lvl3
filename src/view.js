@@ -100,9 +100,7 @@ const renderPosts = (elements, posts, watched) => {
   listOfPosts.classList.add('list-group');
 
   posts.forEach((post) => {
-    const {
-      title, link, id,
-    } = post;
+    const { title, link, id } = post;
     const isPostOpened = watched.uiState.viewedPostsIds.includes(id);
     const postList = document.createElement('li');
     postList.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start');
@@ -133,25 +131,25 @@ const renderFeedback = (elements) => {
   exampleLinkElem.after(feedback);
 };
 
-const processStateHandler = (elements, status) => {
+const formStateHandler = (elements, status, prevValue) => {
   const { submitBtn, input } = elements;
   switch (status) {
     case 'filling':
       submitBtn.disabled = false;
       input.disabled = false;
-      input.value = '';
-      renderFeedback(elements);
+      if (prevValue === 'succeed') {
+        input.value = '';
+      }
+      input.select();
       break;
 
-    case 'loading':
+    case 'submitted':
       submitBtn.disabled = true;
       input.disabled = true;
       break;
 
-    case 'failed':
-      submitBtn.disabled = false;
-      input.disabled = false;
-      input.select();
+    case 'succeed':
+      renderFeedback(elements);
       break;
 
     default:
@@ -175,17 +173,17 @@ const updateModalContent = (posts, currentPostId, elements) => {
 };
 
 export const initView = (state, elements) => {
-  const watchedState = onChange(state, (path, value) => {
+  const watchedState = onChange(state, (path, value, prevValue) => {
     switch (path) {
       case 'rssForm.fields.rssLink.error':
         renderErrors(elements, state.rssForm.fields.rssLink.valid, value);
         break;
 
       case 'rssForm.status':
-        processStateHandler(elements, value);
+        formStateHandler(elements, value, prevValue);
         break;
 
-      case 'networkError':
+      case 'loadingProcess.error':
         renderErrors(elements, state.rssForm.fields.rssLink.valid, value);
         break;
 
