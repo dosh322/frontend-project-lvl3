@@ -17,7 +17,7 @@ export default {
       url: 'Must be valid URL',
       double: 'This RSS already exist',
       'Network Error': 'Network Error',
-      parseError: 'Invalid RSS on following link',
+      invalidRss: 'Invalid RSS on following link',
     },
   },
 };
