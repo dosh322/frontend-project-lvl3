@@ -3,25 +3,22 @@
 import axios from 'axios';
 import _ from 'lodash';
 import parse from './parser';
-import { getRssLinks, linkPosts } from './helpers';
-
-const checkForUpdTimer = 5000;
+import { addProxy, linkPosts } from './helpers';
 
 const postsComparator = (post, currentPost) => post.title === currentPost.title
   && post.description === currentPost.description;
 
-const autoUpdate = (watched, proxyUrl) => {
+const autoUpdate = (watched, timeout) => {
   if (watched.loadingProcess.state === 'loading') {
-    setTimeout(autoUpdate, checkForUpdTimer, watched, proxyUrl);
+    setTimeout(autoUpdate, timeout, watched, timeout);
     return;
   }
 
-  const urls = getRssLinks(watched);
-  const postsUpdPromises = urls.map((url) => axios.get(`${proxyUrl}${url}`)
+  const { feeds } = watched;
+  const postsUpdPromises = feeds.map((feed) => axios.get(addProxy((feed.rssLink)))
     .then((response) => {
+      const { feedId } = feed;
       const parsedResponse = parse(response);
-      const currentFeed = watched.feeds.find((feed) => feed.title === parsedResponse.title);
-      const { feedId } = currentFeed;
       const currentPosts = watched.posts.filter((post) => post.feedId === feedId);
       const { posts } = parsedResponse;
       const newPosts = _.differenceWith(posts, currentPosts, postsComparator);
@@ -31,7 +28,7 @@ const autoUpdate = (watched, proxyUrl) => {
     .catch());
 
   Promise.all(postsUpdPromises)
-    .then(() => setTimeout(autoUpdate, checkForUpdTimer, watched, proxyUrl));
+    .then(() => setTimeout(autoUpdate, timeout, watched, timeout));
 };
 
 export default autoUpdate;

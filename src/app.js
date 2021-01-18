@@ -1,15 +1,17 @@
 import axios from 'axios';
 import i18next from 'i18next';
 import _ from 'lodash';
-import { initView, renderTextContent } from './view.js';
+import initView from './view.js';
 import autoUpdate from './autoUpdater';
 import parse from './parser.js';
 import resources from './locales/index.js';
-import { getRssLinks, linkPosts, validate } from './helpers';
+import {
+  addProxy, getRssLinks, linkPosts, validate,
+} from './helpers';
 
 export default () => {
-  const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
   const defaultLanguage = 'en';
+  const updTimeout = 5000;
 
   const elements = {
     form: document.querySelector('.rss-form'),
@@ -28,6 +30,7 @@ export default () => {
   };
 
   const state = {
+    appState: 'init',
     loadingProcess: {
       state: 'ready',
       error: null,
@@ -55,8 +58,6 @@ export default () => {
     lng: defaultLanguage,
     resources,
   }).then(() => {
-    renderTextContent(elements);
-
     const watched = initView(state, elements);
 
     elements.form.addEventListener('submit', (e) => {
@@ -76,7 +77,7 @@ export default () => {
       watched.rssForm.fields.rssLink.error = null;
       watched.loadingProcess.state = 'loading';
       watched.rssForm.status = 'submitted';
-      axios.get(`${proxyUrl}${rssLink}`)
+      axios.get(addProxy(rssLink))
         .then((response) => {
           const parsedData = parse(response);
           const { description, title, posts } = parsedData;
@@ -86,17 +87,16 @@ export default () => {
           });
           const linkedPosts = linkPosts(feedId, posts);
           watched.posts.unshift(...linkedPosts);
-          watched.rssForm.status = 'succeed';
+          watched.loadingProcess.state = 'succeed';
+          watched.rssForm.status = 'filling';
         })
         .catch((err) => {
           watched.loadingProcess.state = 'failed';
           watched.loadingProcess.error = err.message;
-        })
-        .finally(() => {
-          watched.rssForm.status = 'filling';
-          watched.loadingProcess.state = 'ready';
         });
     });
-    autoUpdate(watched, proxyUrl);
+
+    watched.appState = 'active';
+    autoUpdate(watched, updTimeout);
   });
 };

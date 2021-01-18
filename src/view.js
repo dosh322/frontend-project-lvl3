@@ -118,28 +118,27 @@ const renderPosts = (elements, posts, watched) => {
   elements.posts.append(postsHeading, listOfPosts);
 };
 
-const renderFeedback = (elements) => {
+const renderFeedback = (elements, value) => {
   const { exampleLinkElem } = elements;
   const feedbackElem = exampleLinkElem.nextElementSibling;
 
   if (feedbackElem) {
     feedbackElem.remove();
   }
-
-  const feedbackType = 'success';
-  const feedback = buildFeedbackElem(feedbackType);
-  exampleLinkElem.after(feedback);
+  if (value === 'succeed') {
+    const feedbackType = 'success';
+    const feedback = buildFeedbackElem(feedbackType);
+    exampleLinkElem.after(feedback);
+  }
 };
 
-const formStateHandler = (elements, status, prevValue) => {
+const formStateHandler = (elements, status) => {
   const { submitBtn, input } = elements;
   switch (status) {
     case 'filling':
       submitBtn.disabled = false;
       input.disabled = false;
-      if (prevValue === 'succeed') {
-        input.value = '';
-      }
+      input.value = '';
       input.select();
       break;
 
@@ -148,8 +147,10 @@ const formStateHandler = (elements, status, prevValue) => {
       input.disabled = true;
       break;
 
-    case 'succeed':
-      renderFeedback(elements);
+    case 'failed':
+      submitBtn.disabled = false;
+      input.disabled = false;
+      input.select();
       break;
 
     default:
@@ -172,15 +173,19 @@ const updateModalContent = (posts, currentPostId, elements) => {
   elements.modalFullArticle.href = currentPost.link;
 };
 
-export const initView = (state, elements) => {
-  const watchedState = onChange(state, (path, value, prevValue) => {
+export default (state, elements) => {
+  const watchedState = onChange(state, (path, value) => {
     switch (path) {
+      case 'appState':
+        renderTextContent(elements);
+        break;
+
       case 'rssForm.fields.rssLink.error':
         renderErrors(elements, state.rssForm.fields.rssLink.valid, value);
         break;
 
       case 'rssForm.status':
-        formStateHandler(elements, value, prevValue);
+        formStateHandler(elements, value);
         break;
 
       case 'loadingProcess.error':
@@ -193,6 +198,10 @@ export const initView = (state, elements) => {
 
       case 'posts':
         renderPosts(elements, value, watchedState);
+        break;
+
+      case 'loadingProcess.state':
+        renderFeedback(elements, value);
         break;
 
       case 'uiState.viewedPostsIds':
