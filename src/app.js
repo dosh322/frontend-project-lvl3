@@ -6,7 +6,7 @@ import autoUpdate from './autoUpdater';
 import parse from './parser.js';
 import resources from './locales/index.js';
 import {
-  addProxy, getRssLinks, linkPosts, validate,
+  addProxy, getRssLinks, makePosts, validate,
 } from './helpers';
 
 export default () => {
@@ -30,9 +30,9 @@ export default () => {
   };
 
   const state = {
-    appState: 'init',
+    appStatus: 'init',
     loadingProcess: {
-      state: 'ready',
+      status: 'ready',
       error: null,
     },
     rssForm: {
@@ -75,28 +75,40 @@ export default () => {
 
       watched.rssForm.fields.rssLink.valid = true;
       watched.rssForm.fields.rssLink.error = null;
-      watched.loadingProcess.state = 'loading';
+      watched.loadingProcess.status = 'loading';
       watched.rssForm.status = 'submitted';
       axios.get(addProxy(rssLink))
         .then((response) => {
-          const parsedData = parse(response);
-          const { description, title, posts } = parsedData;
+          const { description, title, items } = parse(response);
           const feedId = _.uniqueId();
           watched.feeds.push({
             feedId, title, description, rssLink,
           });
-          const linkedPosts = linkPosts(feedId, posts);
-          watched.posts.unshift(...linkedPosts);
-          watched.loadingProcess.state = 'succeed';
+          const posts = makePosts(feedId, items);
+          watched.posts.unshift(...posts);
+          watched.loadingProcess.status = 'succeed';
           watched.rssForm.status = 'filling';
         })
         .catch((err) => {
-          watched.loadingProcess.state = 'failed';
+          watched.rssForm.status = 'filling';
+          watched.loadingProcess.status = 'failed';
           watched.loadingProcess.error = err.message;
         });
     });
 
-    watched.appState = 'active';
+    elements.posts.addEventListener('click', (e) => {
+      const postId = e.target.dataset.id;
+      if (!postId) {
+        return;
+      }
+
+      if (!watched.uiState.viewedPostsIds.includes(postId)) {
+        watched.uiState.viewedPostsIds.push(postId);
+      }
+      watched.uiState.previewModal.currentPostId = postId;
+    });
+
+    watched.appStatus = 'active';
     autoUpdate(watched, updTimeout);
   });
 };

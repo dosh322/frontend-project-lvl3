@@ -7,7 +7,7 @@ export default (response) => {
   }
   const title = doc.querySelector('title').textContent;
   const description = doc.querySelector('description').textContent;
-  const posts = [...doc.querySelectorAll('item')].map((post) => ({
+  const items = [...doc.querySelectorAll('item')].map((post) => ({
     title: post.querySelector('title').textContent,
     description: post.querySelector('description').textContent,
     link: post.querySelector('link').textContent,
@@ -15,6 +15,6 @@ export default (response) => {
   return {
     title,
     description,
-    posts,
+    items,
   };
 };

@@ -3,8 +3,8 @@ import * as yup from 'yup';
 
 const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
 
-export const linkPosts = (feedId, posts) => posts
-  .map((post) => ({ feedId, id: _.uniqueId(), ...post }));
+export const makePosts = (feedId, items) => items
+  .map((item) => ({ feedId, id: _.uniqueId(), ...item }));
 
 export const getRssLinks = (watched) => watched.feeds.map((feed) => feed.rssLink);
 

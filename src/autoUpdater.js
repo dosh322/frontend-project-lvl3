@@ -3,31 +3,30 @@
 import axios from 'axios';
 import _ from 'lodash';
 import parse from './parser';
-import { addProxy, linkPosts } from './helpers';
+import { addProxy, makePosts } from './helpers';
 
-const postsComparator = (post, currentPost) => post.title === currentPost.title
+const isSimilar = (post, currentPost) => post.title === currentPost.title
   && post.description === currentPost.description;
 
 const autoUpdate = (watched, timeout) => {
-  if (watched.loadingProcess.state === 'loading') {
+  if (watched.loadingProcess.status === 'loading') {
     setTimeout(autoUpdate, timeout, watched, timeout);
     return;
   }
 
   const { feeds } = watched;
-  const postsUpdPromises = feeds.map((feed) => axios.get(addProxy((feed.rssLink)))
+  const promises = feeds.map((feed) => axios.get(addProxy((feed.rssLink)))
     .then((response) => {
       const { feedId } = feed;
-      const parsedResponse = parse(response);
+      const { items } = parse(response);
+      const posts = makePosts(feedId, items);
       const currentPosts = watched.posts.filter((post) => post.feedId === feedId);
-      const { posts } = parsedResponse;
-      const newPosts = _.differenceWith(posts, currentPosts, postsComparator);
-      const linkedNewPosts = linkPosts(feedId, newPosts);
-      watched.posts.unshift(...linkedNewPosts);
+      const newPosts = _.differenceWith(posts, currentPosts, isSimilar);
+      watched.posts.unshift(...newPosts);
     })
     .catch());
 
-  Promise.all(postsUpdPromises)
+  Promise.all(promises)
     .then(() => setTimeout(autoUpdate, timeout, watched, timeout));
 };
 
