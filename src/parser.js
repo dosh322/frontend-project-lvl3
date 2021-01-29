@@ -1,6 +1,6 @@
 export default (response) => {
   const domparser = new DOMParser();
-  const doc = domparser.parseFromString(response.data, 'text/xml');
+  const doc = domparser.parseFromString(response.data.contents, 'text/xml');
   const error = doc.querySelector('parsererror');
   if (error) {
     throw new Error('invalidRss');
