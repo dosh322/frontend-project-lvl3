@@ -125,19 +125,19 @@ const formStateHandler = (elements, status) => {
   switch (status) {
     case 'filling':
       submitBtn.disabled = false;
-      input.disabled = false;
+      input.readOnly = false;
       input.value = '';
       input.select();
       break;
 
     case 'submitted':
       submitBtn.disabled = true;
-      input.disabled = true;
+      input.readOnly = true;
       break;
 
     case 'failed':
       submitBtn.disabled = false;
-      input.disabled = false;
+      input.readOnly = false;
       input.select();
       break;
 
