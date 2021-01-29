@@ -17,6 +17,7 @@ export default {
       url: 'Must be valid URL',
       double: 'Rss already exists',
       'Network Error': 'Network error',
+      'no internet': 'Network error',
       invalidRss: 'This source doesn\'t contain valid rss',
     },
   },
