@@ -10,7 +10,7 @@ export const getRssLinks = (watched) => watched.feeds.map((feed) => feed.rssLink
 
 export const addProxy = (sourceUrl) => {
   proxyUrl.searchParams.set('url', sourceUrl);
-  return proxyUrl;
+  return proxyUrl.toString();
 };
 
 export const validate = (rssLink, urls) => {
