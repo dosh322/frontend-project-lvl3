@@ -13,11 +13,11 @@ export default {
     full: 'Full article',
     preview: 'Preview',
     feedback: {
-      success: 'RSS has been loaded',
+      success: 'Rss has been loaded',
       url: 'Must be valid URL',
       double: 'This RSS already exist',
-      'Network Error': 'Network Error',
-      invalidRss: 'Invalid RSS on following link',
+      'Network Error': 'Network error',
+      invalidRss: 'This source doesn\'t contain valid rss',
     },
   },
 };
