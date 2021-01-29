@@ -90,6 +90,7 @@ export default () => {
           watched.rssForm.status = 'filling';
         })
         .catch((err) => {
+          console.log(err);
           watched.rssForm.status = 'filling';
           watched.loadingProcess.status = 'failed';
           watched.loadingProcess.error = err.message;
