@@ -15,7 +15,7 @@ export default {
     feedback: {
       success: 'Rss has been loaded',
       url: 'Must be valid URL',
-      double: 'This RSS already exist',
+      double: 'Rss already exists',
       'Network Error': 'Network error',
       invalidRss: 'This source doesn\'t contain valid rss',
     },
