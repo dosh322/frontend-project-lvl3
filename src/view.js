@@ -120,7 +120,7 @@ const feedbackHandler = (elements, value) => {
   }
 };
 
-const formStateHandler = (elements, status) => {
+const formStatusHandler = (elements, status) => {
   const { submitBtn, input } = elements;
   switch (status) {
     case 'filling':
@@ -146,14 +146,6 @@ const formStateHandler = (elements, status) => {
   }
 };
 
-const postsUiHandler = (viewedPostsIds) => {
-  viewedPostsIds.forEach((postId) => {
-    const viewedPost = document.querySelector(`a[data-id='${postId}']`);
-    viewedPost.classList.remove('font-weight-bold');
-    viewedPost.classList.add('font-weight-normal');
-  });
-};
-
 const modalHandler = (posts, currentPostId, elements) => {
   const currentPost = posts.find(({ id }) => id === currentPostId);
   elements.modalTitle.textContent = currentPost.title;
@@ -172,7 +164,7 @@ export default (state, elements) => onChange(state, (path, value) => {
       break;
 
     case 'rssForm.status':
-      formStateHandler(elements, value);
+      formStatusHandler(elements, value);
       break;
 
     case 'loadingProcess.error':
@@ -192,7 +184,7 @@ export default (state, elements) => onChange(state, (path, value) => {
       break;
 
     case 'uiState.viewedPostsIds':
-      postsUiHandler(state.uiState.viewedPostsIds);
+      postsHandler(elements, state.posts, value);
       break;
 
     case 'uiState.previewModal.currentPostId':

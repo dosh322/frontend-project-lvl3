@@ -6,8 +6,6 @@ const proxyUrl = new URL('https://hexlet-allorigins.herokuapp.com/get?disableCac
 export const makePosts = (feedId, items) => items
   .map((item) => ({ feedId, id: _.uniqueId(), ...item }));
 
-export const getRssLinks = (watched) => watched.feeds.map((feed) => feed.rssLink);
-
 export const addProxy = (sourceUrl) => {
   proxyUrl.searchParams.set('url', sourceUrl);
   return proxyUrl.toString();
