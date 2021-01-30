@@ -93,15 +93,14 @@ export default () => {
       const error = validate(rssLink, getRssLinks(watched));
 
       if (error) {
-        watched.rssForm.fields.rssLink.valid = false;
-        watched.rssForm.fields.rssLink.error = error;
+        watched.rssForm = { ...watched.rssForm, status: 'failed', fields: { rssLink: { valid: false, error } } };
         return;
       }
 
       watched.rssForm.fields.rssLink.valid = true;
       watched.rssForm.fields.rssLink.error = null;
       watched.loadingProcess.status = 'loading';
-      watched.rssForm.status = 'submitted';
+      watched.rssForm = { ...watched.rssForm, status: 'submitted' };
       axios.get(addProxy(rssLink))
         .then((response) => {
           const { description, title, items } = parse(response);
@@ -111,11 +110,11 @@ export default () => {
           });
           const posts = makePosts(feedId, items);
           watched.posts.unshift(...posts);
+          watched.rssForm = { ...watched.rssForm, status: 'filling' };
           watched.loadingProcess.status = 'succeed';
-          watched.rssForm.status = 'filling';
         })
         .catch((err) => {
-          watched.rssForm.status = 'filling';
+          watched.rssForm = { ...watched.rssForm, status: 'filling' };
           watched.loadingProcess.status = 'failed';
           watched.loadingProcess.error = err.message;
         });

@@ -146,6 +146,11 @@ const formStatusHandler = (elements, status) => {
   }
 };
 
+const formHandler = (elements, formState) => {
+  errorsHandler(elements, formState.fields.rssLink.valid, formState.fields.rssLink.error);
+  formStatusHandler(elements, formState.status);
+};
+
 const modalHandler = (posts, currentPostId, elements) => {
   const currentPost = posts.find(({ id }) => id === currentPostId);
   elements.modalTitle.textContent = currentPost.title;
@@ -159,12 +164,8 @@ export default (state, elements) => onChange(state, (path, value) => {
       textContentHandler(elements);
       break;
 
-    case 'rssForm.fields.rssLink.error':
-      errorsHandler(elements, state.rssForm.fields.rssLink.valid, value);
-      break;
-
-    case 'rssForm.status':
-      formStatusHandler(elements, value);
+    case 'rssForm':
+      formHandler(elements, value);
       break;
 
     case 'loadingProcess.error':
