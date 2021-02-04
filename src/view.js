@@ -106,33 +106,34 @@ const postsHandler = (elements, posts, viewedPosts) => {
   elements.posts.append(postsHeading, listOfPosts);
 };
 
-const feedbackHandler = (elements, value) => {
+const feedbackHandler = (elements, status) => {
   const { exampleLinkElem } = elements;
   const feedbackElem = exampleLinkElem.nextElementSibling;
 
   if (feedbackElem) {
     feedbackElem.remove();
   }
-  if (value === 'succeed') {
+  if (status === 'succeed') {
     const feedbackType = 'success';
     const feedback = buildFeedbackElem(feedbackType);
     exampleLinkElem.after(feedback);
   }
 };
 
-const formStatusHandler = (elements, status) => {
+const loadingStatusHandler = (elements, status) => {
   const { submitBtn, input } = elements;
   switch (status) {
-    case 'filling':
+    case 'loading':
+      submitBtn.disabled = true;
+      input.readOnly = true;
+      break;
+
+    case 'succeed':
+      feedbackHandler(elements, status);
       submitBtn.disabled = false;
       input.readOnly = false;
       input.value = '';
-      input.select();
-      break;
-
-    case 'submitted':
-      submitBtn.disabled = true;
-      input.readOnly = true;
+      input.focus();
       break;
 
     case 'failed':
@@ -142,13 +143,8 @@ const formStatusHandler = (elements, status) => {
       break;
 
     default:
-      throw new Error(`Unknown process status: ${status}`);
+      throw new Error(`Unknown loading status: ${status}`);
   }
-};
-
-const formHandler = (elements, formState) => {
-  errorsHandler(elements, formState.fields.rssLink.valid, formState.fields.rssLink.error);
-  formStatusHandler(elements, formState.status);
 };
 
 const modalHandler = (posts, currentPostId, elements) => {
@@ -164,8 +160,8 @@ export default (state, elements) => onChange(state, (path, value) => {
       textContentHandler(elements);
       break;
 
-    case 'rssForm':
-      formHandler(elements, value);
+    case 'rssForm.fields.rssLink.error':
+      errorsHandler(elements, state.rssForm.fields.rssLink.valid, value);
       break;
 
     case 'loadingProcess.error':
@@ -181,7 +177,7 @@ export default (state, elements) => onChange(state, (path, value) => {
       break;
 
     case 'loadingProcess.status':
-      feedbackHandler(elements, value);
+      loadingStatusHandler(elements, value);
       break;
 
     case 'uiState.viewedPostsIds':
