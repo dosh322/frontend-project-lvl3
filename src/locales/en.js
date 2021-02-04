@@ -16,9 +16,10 @@ export default {
       success: 'Rss has been loaded',
       url: 'Must be valid URL',
       double: 'Rss already exists',
-      'Network Error': 'Network error',
+      networkError: 'Network error',
       'no internet': 'Network error',
       invalidRss: 'This source doesn\'t contain valid rss',
+      unknown: 'Something went wrong! Try again later',
     },
   },
 };

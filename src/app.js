@@ -10,6 +10,14 @@ import {
 
 const getRssLinks = (watched) => watched.feeds.map((feed) => feed.rssLink);
 
+const getErrorType = (err) => {
+  if (err.isAxiosError) {
+    return 'networkError';
+  } if (err.isParseError) {
+    return 'invalidRss';
+  } return 'unknown';
+};
+
 const autoUpdate = (watched, timeout) => {
   if (watched.loadingProcess.status === 'loading') {
     setTimeout(autoUpdate, timeout, watched, timeout);
@@ -113,7 +121,7 @@ export default () => {
         })
         .catch((err) => {
           watched.loadingProcess.status = 'failed';
-          watched.loadingProcess.error = err.message;
+          watched.loadingProcess.error = getErrorType(err);
         });
     });
 

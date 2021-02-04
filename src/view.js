@@ -17,7 +17,7 @@ const buildFeedbackElem = (type) => {
   const div = document.createElement('div');
   const textClass = type === 'success' ? 'text-success' : 'text-danger';
   div.classList.add('feedback', textClass);
-  div.textContent = i18next.t(`feedback.${type}`, 'Something went wrong! Try again later');
+  div.textContent = i18next.t(`feedback.${type}`);
   return div;
 };
 
